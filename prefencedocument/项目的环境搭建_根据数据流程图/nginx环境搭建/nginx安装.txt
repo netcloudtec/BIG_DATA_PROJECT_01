@@ -1,0 +1,145 @@
+在weekend08节点上搭建nginx
+
+1、准备工作
+选首先安装这几个软件：GCC，PCRE（Perl Compatible Regular Expression），zlib，OpenSSL。
+Nginx是C写的，需要用GCC编译；Nginx的Rewrite和HTTP模块会用到PCRE；Nginx中的Gzip用到zlib；
+用命令“# gcc”，查看gcc是否安装；如果出现“gcc: no input files”信息，说明已经安装好了。
+否则，就需要用命令“# yum install gcc”，进行安装了！一路可能需要多次输入y，进行确认。
+安装好后，可以再用命令“#gcc”测试，或者用命令“# gcc -v”查看其版本号。
+同样方法，用如下命令安装PCRE，zlib，OpenSSL（其中devel，是develop开发包的意思）：
+# yum install -y pcre pcre-devel
+# yum install -y zlib zlib-devel  
+# yum install -y openssl openssl-devel  
+查看安装版本：pcre-config --version   如果出现版本号，说明安装成功
+
+检查系统里是否安装了pcre软件
+
+rpm -qa pcre   如果没有显示说明没有安装  反之安装过
+
+2、下载并安装
+创建目录（nginx-src）并进去；然后，从官方地址http://nginx.org/download/nginx-1.6.2.tar.gz下载，解压，配置，编译，安装：
+1、将下载的压缩包解压到 /usr/local/nginx-src 目录下 
+2、编译： ./configure    默认地址 /usr/local/nginx
+3、安装：make
+4、安装： make install 
+查看安装目录： whereis nginx
+nginx: /usr/local/nginx
+3、Nginx的配置
+cd /usr/local/nginx/conf ,修改nginx.conf进行简单的配置
+可以检测配置的是否正确
+
+　　/usr/local/nginx/sbin/nginx -t
+
+
+　说明配置成功
+4、启动Nginx
+启动nginx
+
+　　启动的时候有报错，如下
+
+　　nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+　　nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+　　nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+　　nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)...
+
+　　这说明80接口有被占用，查看接口
+
+　　netstat -ntpl
+
+　　kill -9 $pid //杀掉进程
+
+　　再次启动
+
+　　/usr/local/nginx/sbin/nginx
+
+　　停止服务器
+
+　　/usr/local/nginx/sbin/nginx -s stop 或 /usr/local/nginx/sbin/nginx -s quick
+
+　　网页访问  localhost
+
+
+5、添加到系统服务
+使用命令“# vi /etc/init.d/nginx”，打开编辑器，输入如下内容
+#======================================================================================
+#!/bin/sh  
+# chkconfig: 2345 85 15  
+# Startup script for the nginx Web Server  
+# description: nginx is a World Wide Web server.   
+# It is used to serve HTML files and CGI.  
+# processname: nginx  
+# pidfile: /usr/local/nginx/logs/nginx.pid  
+# config: /usr/local/nginx/conf/nginx.conf  
+  
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin  
+DESC="nginx deamon"  
+NAME=nginx  
+DAEMON=/usr/local/nginx/sbin/$NAME  
+SCRIPTNAME=/etc/init.d/$NAME  
+  
+test -x $DAEMON || exit 0  
+  
+d_start(){  
+  $DAEMON || echo -n "already running"  
+}  
+  
+d_stop(){  
+  $DAEMON -s quit || echo -n "not running"  
+}  
+  
+  
+d_reload(){  
+  $DAEMON -s reload || echo -n "can not reload"  
+}  
+  
+case "$1" in  
+start)  
+  echo -n "Starting $DESC: $NAME"  
+  d_start  
+  echo "."  
+;;  
+stop)  
+  echo -n "Stopping $DESC: $NAME"  
+  d_stop  
+  echo "."  
+;;  
+reload)  
+  echo -n "Reloading $DESC conf..."  
+  d_reload  
+  echo "reload ."  
+;;  
+restart)  
+  echo -n "Restarting $DESC: $NAME"  
+  d_stop  
+  sleep 2  
+  d_start  
+  echo "."  
+;;  
+*)  
+  echo "Usage: $ScRIPTNAME {start|stop|reload|restart}" >&2  
+  exit 3  
+;;  
+esac  
+  
+exit 0  
+#========================================================================================
+注册 nginx 服务：
+chmod +x /etc/init.d/nginx  
+chkconfig --add nginx  
+chkconfig --list nginx  
+相关 nginx 命令：
+检测 nginx 配置
+
+# service nginx test  
+启动
+[plain] view plain copy
+# service nginx start  
+关闭
+[plain] view plain copy
+# service nginx stop  
+重启
+[plain] view plain copy
+# service nginx restart  
+重载配置
+[plain] view plain copy
+# service nginx reload  

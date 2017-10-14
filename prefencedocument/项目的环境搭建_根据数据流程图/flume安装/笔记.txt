@@ -1,0 +1,23 @@
+﻿window.navigator.userAgent:浏览器信息
+
+
+nginx.conf:
+log_format my_format '$remote_addr^A$msec^A$http_host^A$request_uri';
+
+location = /log.gif {
+   default_type image/gif;
+   access_log /opt/data/access.log my_format;
+}
+
+
+
+flume-ng agent --conf conf --conf-file example.conf --name a1 -Dflume.root.logger=INFO,console
+
+
+在我们本次项目中ip解析采用的是纯真ip数据库，官网是http://www.cz88.net/
+另外：ip解析可以采用淘宝提供的ip接口来进行解析
+	地址：http://ip.taobao.com/
+	接口：http://ip.taobao.com/service/getIpInfo.php?ip=[ip地址字串]
+
+
+etl的结果存储到hbase中，由于考虑到不同事件有不同的数据格式，所以我们将最终etl的结果保存到hbase中，我们使用单family的数据格式，rowkey的生产模式我们采用timestamp+uuid.crc编码的方式。hbase创建命令：create 'event_logs', 'info'
